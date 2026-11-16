@@ -1,4 +1,4 @@
-aml
+yaml
 name: Build Android APK
 
 on:
