@@ -2,7 +2,11 @@ package in.gov.vbgramg.autofreeze
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.view.Gravity
+import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
@@ -12,6 +16,7 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -32,13 +37,91 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        webView = findViewById(R.id.webView)
-        tvStatus = findViewById(R.id.tvStatus)
-        btnStart = findViewById(R.id.btnStart)
-        btnStop = findViewById(R.id.btnStop)
-        btnReload = findViewById(R.id.btnReload)
+        val rootLayout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.parseColor("#F4F6F9"))
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+
+        val topBar = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.parseColor("#0B4F8A"))
+            setPadding(24, 20, 24, 20)
+        }
+
+        val controlsRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+        val tvTitle = TextView(this).apply {
+            text = "VB-G RAM G Auto-Freeze (2026)"
+            setTextColor(Color.WHITE)
+            textSize = 15f
+            setTypeface(null, Typeface.BOLD)
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+        }
+
+        btnReload = Button(this).apply {
+            text = "Reload"
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.parseColor("#1E6FB8"))
+            textSize = 12f
+        }
+
+        btnStart = Button(this).apply {
+            text = "Start 2026"
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.parseColor("#1B8A3E"))
+            textSize = 12f
+        }
+
+        btnStop = Button(this).apply {
+            text = "Stop"
+            isAllCaps = false
+            setTextColor(Color.WHITE)
+            setBackgroundColor(Color.parseColor("#C62828"))
+            textSize = 12f
+            isEnabled = false
+        }
+
+        val btnParams = LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply { marginStart = 12 }
+
+        controlsRow.addView(tvTitle)
+        controlsRow.addView(btnReload, btnParams)
+        controlsRow.addView(btnStart, btnParams)
+        controlsRow.addView(btnStop, btnParams)
+
+        tvStatus = TextView(this).apply {
+            text = "Status: Log in, select District & Block, then tap 'Start 2026'"
+            setTextColor(Color.parseColor("#E0ECFF"))
+            textSize = 12f
+            setPadding(0, 10, 0, 0)
+        }
+
+        topBar.addView(controlsRow)
+        topBar.addView(tvStatus)
+
+        webView = WebView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        }
+
+        rootLayout.addView(topBar)
+        rootLayout.addView(webView)
+        setContentView(rootLayout)
 
         setupWebView()
 
@@ -51,7 +134,6 @@ class MainActivity : AppCompatActivity() {
             btnStart.isEnabled = false
             btnStop.isEnabled = true
             updateStatus("Starting automation across Panchayats...")
-            // Reset persisted Panchayat index for a fresh run
             webView.evaluateJavascript("localStorage.removeItem('vbgramg_freeze_2026_state');", null)
             injectAutomationScript()
         }
@@ -81,7 +163,6 @@ class MainActivity : AppCompatActivity() {
         settings.setSupportZoom(true)
         settings.builtInZoomControls = true
         settings.displayZoomControls = false
-        // Desktop Chrome User-Agent so ASP.NET renders full desktop table layout
         settings.userAgentString =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
 
@@ -133,7 +214,6 @@ class MainActivity : AppCompatActivity() {
 
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                // Re-inject automatically if a full-page postback occurred while running
                 if (isAutomationRunning) {
                     webView.postDelayed({
                         if (isAutomationRunning) {
