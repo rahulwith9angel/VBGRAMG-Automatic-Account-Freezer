@@ -1,4 +1,4 @@
-package in.gov.vbgramg.autofreeze
+package `in`.gov.vbgramg.autofreeze
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
